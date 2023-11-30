@@ -1,37 +1,53 @@
-# used to create the object
+#任务名称，需要和utils/task_util.py中的Taskname一致
 name: Cartpole
-
+#物理引擎，只支持physx
 physics_engine: ${..physics_engine}
 
+#任务相关参数
 # if given, will override the device setting in gym. 
 env:
+  #要创建的环境数量
   numEnvs: ${resolve_default:512,${...num_envs}}
+  #要创建的环境之间的距离，米为单位
   envSpacing: 4.0
+  #cartpole重置距离限制
   resetDist: 3.0
+  #力度缩放
   maxEffort: 400.0
-
+  #观察缓冲区的剪切范围在（-5.0到5.0） 
   clipObservations: 5.0
+  #动作值范围在（-1.0到1.0）
   clipActions: 1.0
+  #每两个模拟步执行一个动作
   controlFrequencyInv: 2 # 60 Hz
 
+#仿真相关参数
 sim:
+  #每个仿真步骤之间的时间差
   dt: 0.0083 # 1/120 s
+  #是否使用GPU
   use_gpu_pipeline: ${eq:${...pipeline},"gpu"}
+  #模拟场景的重力矢量
   gravity: [0.0, 0.0, -9.81]
+  #是否添加地面
   add_ground_plane: True
+  #是否添加照明
   add_distant_light: False
+  #渲染必需
   use_fabric: True
+  #禁用场景查询，禁用场景交互
   enable_scene_query_support: False
+  #禁用额外的接触
   disable_contact_processing: False
 
-  # set to True if you use camera sensors in the environment
+  # set to True if you use camera sensors in the environment如果使用环境中的相机传感器应设为true
   enable_cameras: False
-
+#默认物理材质
   default_physics_material:
     static_friction: 1.0
     dynamic_friction: 1.0
     restitution: 0.0
-
+#physx相关参数
   physx:
     worker_thread_count: ${....num_threads}
     solver_type: ${....solver_type}
@@ -59,8 +75,10 @@ sim:
     gpu_temp_buffer_capacity: 16777216
     gpu_max_num_partitions: 8
 
+#场景中美国资源都可覆盖场景定义的物理参数
+#名称应与ArticulationView的名称匹配
   Cartpole:
-    # -1 to use default values
+    # -1表示使用默认参数
     override_usd_defaults: False
     enable_self_collisions: False
     enable_gyroscopic_forces: True

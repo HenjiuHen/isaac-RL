@@ -72,7 +72,8 @@ def import_tasks():
         "ShadowHand": ShadowHandTask,
         "ShadowHandOpenAI_FF": ShadowHandTask,
         "ShadowHandOpenAI_LSTM": ShadowHandTask,
-        "my_CartPole":my_cartpoleTask
+        "my_CartPole":my_cartpoleTask,
+        #"Taskname":ClassName,
     }
 
     task_map_warp = {

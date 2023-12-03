@@ -1,5 +1,5 @@
 #任务名称，需要和utils/task_util.py中的Taskname一致
-name: Cartpole
+name: mycartpole
 #物理引擎，只支持physx
 physics_engine: ${..physics_engine}
 

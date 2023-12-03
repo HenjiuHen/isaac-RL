@@ -45,7 +45,7 @@ def import_tasks():
     from omniisaacgymenvs.tasks.ingenuity import IngenuityTask
     from omniisaacgymenvs.tasks.quadcopter import QuadcopterTask
     from omniisaacgymenvs.tasks.shadow_hand import ShadowHandTask
-    from omniisaacgymenvs.tasks.my_cartpole import my_cartpoleTask
+    from omniisaacgymenvs.tasks.mycartpole import mycartpoleTask
 
     from omniisaacgymenvs.tasks.warp.ant import AntLocomotionTask as AntLocomotionTaskWarp
     from omniisaacgymenvs.tasks.warp.cartpole import CartpoleTask as CartpoleTaskWarp
@@ -72,7 +72,7 @@ def import_tasks():
         "ShadowHand": ShadowHandTask,
         "ShadowHandOpenAI_FF": ShadowHandTask,
         "ShadowHandOpenAI_LSTM": ShadowHandTask,
-        "my_CartPole":my_cartpoleTask,
+        "mycartpole": mycartpoleTask,
         #"Taskname":ClassName,
     }
 
@@ -87,7 +87,6 @@ def import_tasks():
 
 def initialize_task(config, env, init_sim=True):
     from omniisaacgymenvs.utils.config_utils.sim_config import SimConfig
-
     sim_config = SimConfig(config)
     task_map, task_map_warp = import_tasks()
 

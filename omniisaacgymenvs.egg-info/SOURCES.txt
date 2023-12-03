@@ -25,6 +25,7 @@ omniisaacgymenvs/tasks/franka_cabinet.py
 omniisaacgymenvs/tasks/franka_deformable.py
 omniisaacgymenvs/tasks/humanoid.py
 omniisaacgymenvs/tasks/ingenuity.py
+omniisaacgymenvs/tasks/my_cartpole.py
 omniisaacgymenvs/tasks/quadcopter.py
 omniisaacgymenvs/tasks/shadow_hand.py
 omniisaacgymenvs/tasks/shared/__init__.py

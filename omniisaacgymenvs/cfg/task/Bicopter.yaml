@@ -1,13 +1,13 @@
 # used to create the object
-name: Quadcopter
+name: Bicopter
 
 physics_engine: ${..physics_engine}
 
 # if given, will override the device setting in gym.
 env: 
-  numEnvs: ${resolve_default:8,${...num_envs}}
-  envSpacing: 1.25
-  maxEpisodeLength: 500
+  numEnvs: ${resolve_default:4096,${...num_envs}}
+  envSpacing: 1
+  maxEpisodeLength: 1000
   enableDebugVis: False
 
   clipObservations: 5.0
@@ -58,7 +58,7 @@ sim:
     gpu_temp_buffer_capacity: 16777216
     gpu_max_num_partitions: 8
 
-  copter:
+  bicopter:
     # -1 to use default values
     override_usd_defaults: False
     enable_self_collisions: True

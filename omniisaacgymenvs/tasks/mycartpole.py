@@ -14,7 +14,7 @@ class mycartpoleTask(RLTask):
         #sim_config:包含从任务配置文件中解析的任务和物理参数，例如任务环境的数量、物理参数、智能体的物理属性
         #env:环境对象，由脚本定义
         self.update_config(sim_config)#解析任务配置文件
-        self._max_episode_lengtjn=500#最大迭代次数
+        self._max_episode_lengtn=500#最大迭代次数
 
         self._num_observations=4#初始化观测空间
         self._num_actions=1#初始化动作空间

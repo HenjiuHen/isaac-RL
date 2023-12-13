@@ -1,5 +1,5 @@
 # used to create the object
-name: Bicopter
+name: Bicopter_v1
 
 physics_engine: ${..physics_engine}
 

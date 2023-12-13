@@ -7,19 +7,19 @@ from omni.isaac.core.prims import RigidPrimView
 from omni.isaac.core.utils.prims import get_prim_at_path
 from omni.isaac.core.utils.torch.rotations import *
 from omniisaacgymenvs.tasks.base.rl_task import RLTask
-from omniisaacgymenvs.robots.articulations.bicopter import Bicopter
+from omniisaacgymenvs.robots.articulations.bicopter_v1 import Bicopter
 from omniisaacgymenvs.tasks.bicopter_view import BicopterView
 
-class BicopterTask(RLTask):
+class Bicopter_v1Task(RLTask):
     def __init__(self, name, sim_config, env, offset=None) -> None:
         self.update_config(sim_config)
-        self._num_actions=4#动作空间：推力大小，旋转方向
+        self._num_actions=6#动作空间：推力大小，旋转方向
         self._num_observations=21
         RLTask.__init__(self, name=name, env=env)
 
-        self.max_thrust= 40.0#最大推力
-        self.thrust_lower_limits=torch.zeros(2,device=self._device,dtype=torch.float32)#推力下限       
-        self.thrust_upper_limits=self.max_thrust*torch.ones(2,device=self._device,dtype=torch.float32)#推力下限
+        max_thrust= 4.0#最大推力
+        self.thrust_lower_limits=-max_thrust*torch.ones(2,device=self._device,dtype=torch.float32)#推力下限       
+        self.thrust_upper_limits=max_thrust*torch.ones(2,device=self._device,dtype=torch.float32)#推力下限
 
         return
 
@@ -32,8 +32,7 @@ class BicopterTask(RLTask):
         self._env_spacing = self._task_cfg["env"]["envSpacing"]
         self._max_episode_length = self._task_cfg["env"]["maxEpisodeLength"]
 
-        self._bicopter_positions=torch.tensor([0.0,0.0,0.5])#初始位置
-        self._ball_positions=torch.tensor([0.0,0.0,2.0])#球初始位置
+        self._bicopter_positions=torch.tensor([0.0,0.0,0.0])#初始位置
         self.dt = self._task_cfg["sim"]["dt"]
 
         return       
@@ -86,7 +85,6 @@ class BicopterTask(RLTask):
             name="target_0",
             radius=radius,
             color=color,
-            translation=self._ball_positions
         )
         self._sim_config.apply_articulation_settings(
             "ball", get_prim_at_path(ball.prim_path), self._sim_config.parse_actor_config("ball")
@@ -107,7 +105,7 @@ class BicopterTask(RLTask):
         self.obs_buf[..., 3:7] = root_quats
         self.obs_buf[..., 7:10] = root_linvels / 2
         self.obs_buf[..., 10:13] = root_angvels / math.pi
-        self.obs_buf[..., 13:15] = self.dof_pos
+        self.obs_buf[..., 13:17] = self.dof_pos
 
         observations = {self._bicopter.name: {"obs_buf": self.obs_buf}}
         return observations
@@ -121,13 +119,13 @@ class BicopterTask(RLTask):
             self.reset_idx(reset_env_ids)
         actions = actions.clone().to(self._device)
         self.action=actions
-        dof_action_speed_scale = 1 * math.pi#角速度
-        self.dof_position_targets += self.dt * dof_action_speed_scale * actions[:, 0:2]
+        dof_action_speed_scale = 0.5 * math.pi
+        self.dof_position_targets += self.dt * dof_action_speed_scale * actions[:, 0:4]#关节输出
         self.dof_position_targets[:] = tensor_clamp(
             self.dof_position_targets, self.dof_lower_limits, self.dof_upper_limits
         )
-        thrust_action_speed_scale = 400#推力改变速度
-        self.thrusts += self.dt * thrust_action_speed_scale * actions[:, 2:4]
+        thrust_action_speed_scale = 100
+        self.thrusts += self.dt * thrust_action_speed_scale * actions[:, 4:6]#推力输出
         self.thrusts[:] = tensor_clamp(self.thrusts, self.thrust_lower_limits, self.thrust_upper_limits)
 
         self.forces[:, 0, 2] = self.thrusts[:, 0]
@@ -136,7 +134,7 @@ class BicopterTask(RLTask):
         self.forces[reset_env_ids] = 0.0
         self.dof_position_targets[reset_env_ids] = self.dof_pos[reset_env_ids]
 
-        self._bicopter.set_joint_positions(self.dof_position_targets)
+        self._bicopter.set_joint_position_targets(self.dof_position_targets)
         self._bicopter.propeller.apply_forces(self.forces, is_global=False)
 
         return 
@@ -155,8 +153,8 @@ class BicopterTask(RLTask):
         )
 
         self.target_positions = torch.zeros((self._num_envs, 3), device=self._device)
-        self.target_positions[:, 2] = 2.0
-        self.actions = torch.zeros((self._num_envs, 4), device=self._device, dtype=torch.float32)
+        self.target_positions[:, 2] = 1.0
+
         self.root_pos, self.root_rot = self._bicopter.get_world_poses(clone=False)
         self.root_velocities = self._bicopter.get_velocities(clone=False)
         self.dof_pos = self._bicopter.get_joint_positions(clone=False)
@@ -174,9 +172,9 @@ class BicopterTask(RLTask):
         self.dof_vel[env_ids, :] = 0
 
         root_pos = self.initial_root_pos.clone()
-        root_pos[env_ids, 0] += torch_rand_float(-1, -1, (num_resets, 1), device=self._device).view(-1)
-        root_pos[env_ids, 1] += torch_rand_float(-1, -1, (num_resets, 1), device=self._device).view(-1)
-        root_pos[env_ids, 2] += torch_rand_float(-0.2, 2, (num_resets, 1), device=self._device).view(-1)
+        root_pos[env_ids, 0] += torch_rand_float(-1.5, 1.5, (num_resets, 1), device=self._device).view(-1)
+        root_pos[env_ids, 1] += torch_rand_float(-1.5, 1.5, (num_resets, 1), device=self._device).view(-1)
+        root_pos[env_ids, 2] += torch_rand_float(-0.2, 1.5, (num_resets, 1), device=self._device).view(-1)
         root_velocities = self.root_velocities.clone()
         root_velocities[env_ids] = 0
 
@@ -197,54 +195,23 @@ class BicopterTask(RLTask):
         root_positions = self.root_pos - self._env_pos
         root_quats = self.root_rot
         root_angvels = self.root_velocities[:, 3:]
-        root_speed=self.root_velocities[:, :3]
-        
+
         # distance to target
         target_dist = torch.sqrt(torch.square(self.target_positions - root_positions).sum(-1))
-        pos_reward = 1.0 / (1.0 +3*target_dist * target_dist)  # 2
+        pos_reward = 1.0 / (1.0 + 3 * target_dist * target_dist)  # 2
         self.target_dist = target_dist
         self.root_positions = root_positions
 
-
-        euler_RPY=get_euler_xyz(root_quats)
-        roll=euler_RPY[0]
-        pitch=euler_RPY[1]
-        roll_rew=roll*roll
-        pitch_rew=(2*math.pi-pitch)*(2*math.pi-pitch)
-        ver_rew=0.1*(roll_rew+pitch_rew)
         # uprightness
-        #ups = quat_axis(root_quats, 2)
-        #tiltage = torch.abs(1 - ups[..., 2])
-        #up_reward = 1.0 / (1.0 + 10 * tiltage * tiltage)
         ups = quat_axis(root_quats, 2)
-        self.orient_z = ups[..., 2]
-        up_reward = 2*torch.clamp(ups[..., 2], min=0.0, max=1.0)
+        tiltage = torch.abs(1 - ups[..., 2])
+        up_reward = 1.0 / (1.0 + 10 * tiltage * tiltage)
 
-        # effort reward
-        effort = torch.square(self.actions).sum(-1)
-        effort_reward = 0.05 * torch.exp(-0.5 * effort)
-
-        dof_pos_re=(10*self.dof_pos*self.dof_pos)
-        dof_pos_rew=torch.exp(-1.0*(dof_pos_re[:,0]+dof_pos_re[:,1]))
-
-        speed = torch.square(root_speed).sum(-1)
-        speed_reward = 0.3 * torch.exp(-1.0 * speed)
-        # spin reward
-        spin = torch.square(root_angvels).sum(-1)
-        spin_reward = torch.exp(-1.0 * spin)
-        spinnage = torch.abs(root_angvels[..., 2])
-        rollnage= torch.abs(root_angvels[..., 0])
-        ang=torch.abs(root_angvels)
-        rollnage_reward=1.0 / (1.0 + 0.1 * rollnage * rollnage)
-        spinnage_reward = 1.0 / (1.0 + 0.1 * spinnage * spinnage)
-        ang_reward = (1.0 / (1.0 + 0.1 * ang * ang)).sum(-1)
-        RS_reward=rollnage_reward+spinnage_reward+spinnage * spinnage * (-1 / 400)+rollnage * rollnage * (-1 / 400)
-        #spin_reward =  .0/(1.0+spin)
         # spinning
-        #spinnage = torch.abs(root_angvels[..., 2])
-        #spinnage_reward = 1.0 / (1.0 + 0.1 * spinnage * spinnage)
+        spinnage = torch.abs(root_angvels[..., 2])
+        spinnage_reward = 1.0 / (1.0 + 0.001 * spinnage * spinnage)
 
-        rew = 2*pos_reward + pos_reward *(up_reward + spin_reward+ang_reward+ang.sum(-1)*ang.sum(-1)*(-1 / 400))-effort_reward
+        rew = pos_reward + pos_reward * (up_reward + spinnage_reward + spinnage * spinnage * (-1 / 400))
         rew = torch.clip(rew, 0.0, None)
         self.rew_buf[:] = rew
 
@@ -252,9 +219,8 @@ class BicopterTask(RLTask):
         # resets due to misbehavior
         ones = torch.ones_like(self.reset_buf)
         die = torch.zeros_like(self.reset_buf)
-        die = torch.where(self.target_dist > 5.0, ones, die)
+        die = torch.where(self.target_dist > 3.0, ones, die)
         die = torch.where(self.root_positions[..., 2] < 0.3, ones, die)
-        die = torch.where(self.orient_z < 0.0, ones, die)
 
         # resets due to episode length
         self.reset_buf[:] = torch.where(self.progress_buf >= self._max_episode_length - 1, ones, die)

@@ -47,6 +47,7 @@ def import_tasks():
     from omniisaacgymenvs.tasks.shadow_hand import ShadowHandTask
     from omniisaacgymenvs.tasks.mycartpole import mycartpoleTask
     from omniisaacgymenvs.tasks.bicopter import BicopterTask
+    from omniisaacgymenvs.tasks.bicopter_v1 import Bicopter_v1Task
 
     from omniisaacgymenvs.tasks.warp.ant import AntLocomotionTask as AntLocomotionTaskWarp
     from omniisaacgymenvs.tasks.warp.cartpole import CartpoleTask as CartpoleTaskWarp
@@ -75,6 +76,7 @@ def import_tasks():
         "ShadowHandOpenAI_LSTM": ShadowHandTask,
         "mycartpole": mycartpoleTask,
         "Bicopter" : BicopterTask,
+        "Bicopter_v1" : Bicopter_v1Task,
         #"Taskname":ClassName,
     }
 

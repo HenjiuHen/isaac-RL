@@ -174,8 +174,8 @@ class BicopterTask(RLTask):
         self.dof_vel[env_ids, :] = 0
 
         root_pos = self.initial_root_pos.clone()
-        root_pos[env_ids, 0] += torch_rand_float(-1, -1, (num_resets, 1), device=self._device).view(-1)
-        root_pos[env_ids, 1] += torch_rand_float(-1, -1, (num_resets, 1), device=self._device).view(-1)
+        root_pos[env_ids, 0] += torch_rand_float(-1, 1, (num_resets, 1), device=self._device).view(-1)
+        root_pos[env_ids, 1] += torch_rand_float(-1, 1, (num_resets, 1), device=self._device).view(-1)
         root_pos[env_ids, 2] += torch_rand_float(-0.2, 2, (num_resets, 1), device=self._device).view(-1)
         root_velocities = self.root_velocities.clone()
         root_velocities[env_ids] = 0

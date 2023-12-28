@@ -1,6 +1,6 @@
 task_name: ${task.name}
 experiment: ''
-num_envs: 1
+num_envs: 64
 seed: 42
 torch_deterministic: false
 max_iterations: ''
